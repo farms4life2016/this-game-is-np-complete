@@ -9,7 +9,7 @@ public class EnvironmentTile
 
     public bool isWall;
     public Operation operation;
-    public int modifier; // the number added or multiplied by
+    public long modifier; // the number added or multiplied by
     public NumericTile occupant;
 
     public enum Operation 

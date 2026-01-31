@@ -4,7 +4,7 @@
  */
 public class NumericTile
 {
-    public int value; // should make some fields private to avoid unwanted mutations!!!
+    public long value; // should make some fields private to avoid unwanted mutations!!!
     public int x;
     public int y;
     public Direction velocity;
