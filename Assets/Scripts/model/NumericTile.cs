@@ -4,10 +4,12 @@
  */
 public class NumericTile
 {
-    public long value; // should make some fields private to avoid unwanted mutations!!!
+    // should make some fields private to avoid unwanted mutations!!!
+    public long value;
     public int x;
     public int y;
-    public Direction velocity;
+    public Direction direction;
+    public StatusEffect statusEffect;
     
     public enum Direction
     {
@@ -15,6 +17,14 @@ public class NumericTile
         Down,
         Left,
         Right,
+        None
+    }
+
+    public enum StatusEffect
+    {
+        Frozen,
+        OnFire,
+        Sticky,
         None
     }
 }

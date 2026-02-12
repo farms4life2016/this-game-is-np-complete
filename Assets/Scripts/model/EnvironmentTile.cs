@@ -9,6 +9,7 @@ public class EnvironmentTile
 
     public bool isWall;
     public Operation operation;
+    public Trap trap;
     public long modifier; // the number added or multiplied by
     public NumericTile occupant;
 
@@ -16,6 +17,15 @@ public class EnvironmentTile
     {
         Add,
         Multiply,
+        None
+    }
+
+    public enum Trap
+    {
+        Snowy,
+        Fiery,
+        Sappy,
+        Soapy,
         None
     }
 
