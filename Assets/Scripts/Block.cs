@@ -1,10 +1,12 @@
 using TMPro;
 using UnityEngine;
 
+[ExecuteAlways]
 public class Block : MonoBehaviour
 {
     [SerializeField] private long value = 0;
     [SerializeField] private TextMeshPro text;
+    [SerializeField] private MeshRenderer quadRenderer;
 
     public long Value => value;
 
@@ -13,28 +15,36 @@ public class Block : MonoBehaviour
         if (text == null)
             text = GetComponentInChildren<TextMeshPro>();
 
-        UpdateVisual();
+        UpdateText();
+    }
+
+    private void OnValidate()
+    {
+        if (text == null)
+            text = GetComponentInChildren<TextMeshPro>();
+
+        UpdateText();
     }
 
     public void SetValue(long newValue)
     {
         value = newValue;
-        UpdateVisual();
+        UpdateText();
     }
 
     public void Add(long amount)
     {
         value += amount;
-        UpdateVisual();
+        UpdateText();
     }
 
     public void Multiply(long factor)
     {
         value *= factor;
-        UpdateVisual();
+        UpdateText();
     }
 
-    private void UpdateVisual()
+    private void UpdateText()
     {
         text.text = FormatValue(value);
     }
@@ -43,5 +53,11 @@ public class Block : MonoBehaviour
     {
         // Replace hyphen with proper minus sign (\u2212)
         return v.ToString().Replace("-", "\u2212");
+    }
+
+    public void SetColor(Color color)
+    {
+        if (quadRenderer != null)
+            quadRenderer.material.color = color;
     }
 }

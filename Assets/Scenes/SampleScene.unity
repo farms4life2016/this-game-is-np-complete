@@ -167,6 +167,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Block
   value: -31
   text: {fileID: 1984743839}
+  quadRenderer: {fileID: 370643500}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -385,7 +386,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: f703a4dadca84724eba4f20871da2b2c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -650,7 +651,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 3
+  m_text: "\u221231"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ed72daf5c50f3f043b913fb050274699, type: 2}
   m_sharedMaterial: {fileID: 5470644593582279847, guid: ed72daf5c50f3f043b913fb050274699, type: 2}
