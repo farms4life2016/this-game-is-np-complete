@@ -713,4 +713,110 @@ public class PuzzleEditModeTests
         Assert.That(GetBlock(puzzle, 2, 0).Value, Is.EqualTo(2L));
         Assert.That(second.GameOver, Is.EqualTo(Puzzle.GameOverResult.LOSE));
     }
+
+    /*
+     * Rule:
+     * Restoring a captured snapshot returns blocks to the exact pre-move state.
+     *
+     * Initial:
+     * y=0  B2  .  .
+     * y=1  B3  .  .
+     *
+     * Move Right:
+     * y=0  .  .  B2
+     * y=1  .  .  B3
+     *
+     * Restore snapshot:
+     * y=0  B2  .  .
+     * y=1  B3  .  .
+     */
+    [Test]
+    public void RestoreDynamicState_RevertsToCapturedState()
+    {
+        Tile[,] tiles = Puzzle.CreateBlankGrid(3, 2);
+        var puzzle = new Puzzle(
+            width: 3,
+            height: 2,
+            target: 99,
+            tiles: tiles,
+            blocks: new[]
+            {
+                new Block(0, 0, 2L),
+                new Block(0, 1, 3L)
+            });
+
+        Puzzle.GameStateSnapshot snapshot = puzzle.CaptureDynamicState();
+        RunTurn(puzzle, Block.Direction.Right);
+
+        puzzle.RestoreDynamicState(snapshot);
+
+        Assert.That(GetBlock(puzzle, 0, 0).Value, Is.EqualTo(2L));
+        Assert.That(GetBlock(puzzle, 0, 1).Value, Is.EqualTo(3L));
+        Assert.That(puzzle.GameOver, Is.EqualTo(Puzzle.GameOverResult.NOT_YET));
+    }
+
+    /*
+     * Rule:
+     * Restoring a snapshot also restores game-over status.
+     *
+     * Initial:
+     * y=0  B1
+     * y=1  B2
+     * target=3
+     *
+     * Move Up -> WIN (B3)
+     * Restore initial snapshot -> NOT_YET (B1 and B2)
+     * Restore win snapshot -> WIN (B3)
+     */
+    [Test]
+    public void RestoreDynamicState_RestoresGameStatus()
+    {
+        Tile[,] tiles = Puzzle.CreateBlankGrid(1, 2);
+        var puzzle = new Puzzle(
+            width: 1,
+            height: 2,
+            target: 3,
+            tiles: tiles,
+            blocks: new[]
+            {
+                new Block(0, 0, 1L),
+                new Block(0, 1, 2L)
+            });
+
+        Puzzle.GameStateSnapshot initialSnapshot = puzzle.CaptureDynamicState();
+        RunTurn(puzzle, Block.Direction.Up);
+        Puzzle.GameStateSnapshot winSnapshot = puzzle.CaptureDynamicState();
+
+        puzzle.RestoreDynamicState(initialSnapshot);
+        Assert.That(puzzle.GameOver, Is.EqualTo(Puzzle.GameOverResult.NOT_YET));
+        Assert.That(puzzle.Blocks.Count, Is.EqualTo(2));
+
+        puzzle.RestoreDynamicState(winSnapshot);
+        Assert.That(puzzle.GameOver, Is.EqualTo(Puzzle.GameOverResult.WIN));
+        Assert.That(puzzle.Blocks.Count, Is.EqualTo(1));
+        Assert.That(GetBlock(puzzle, 0, 0).Value, Is.EqualTo(3L));
+    }
+
+    /*
+     * Rule:
+     * Restoring an empty/default snapshot is rejected.
+     */
+    [Test]
+    public void RestoreDynamicState_DefaultSnapshot_Throws()
+    {
+        Tile[,] tiles = Puzzle.CreateBlankGrid(2, 2);
+        var puzzle = new Puzzle(
+            width: 2,
+            height: 2,
+            target: 99,
+            tiles: tiles,
+            blocks: new[]
+            {
+                new Block(0, 0, 1L),
+                new Block(1, 1, 2L)
+            });
+
+        Puzzle.GameStateSnapshot invalid = default;
+        Assert.Throws<ArgumentException>(() => puzzle.RestoreDynamicState(invalid));
+    }
 }

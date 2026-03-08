@@ -83,7 +83,7 @@ public class Puzzle
             throw new ArgumentException("Puzzle must contain at least one block.", nameof(blocks));
         }
 
-        ValidateInitialBlocks();
+        ValidateBlocks(this.blocks, nameof(blocks));
         CheckWinConditions();
     }
 
@@ -124,6 +124,52 @@ public class Puzzle
             gameOver = gameOver
         };
         return cloned;
+    }
+
+    /// <summary>
+    /// Captures only the dynamic puzzle state for undo/redo.
+    /// </summary>
+    public GameStateSnapshot CaptureDynamicState()
+    {
+        var blockStates = new BlockState[blocks.Count];
+        for (int i = 0; i < blocks.Count; i++)
+        {
+            Block block = blocks[i];
+            blockStates[i] = new BlockState(block.X, block.Y, block.Value);
+        }
+
+        return new GameStateSnapshot(blockStates, gameOver);
+    }
+
+    /// <summary>
+    /// Restores a previously captured dynamic puzzle state.
+    /// </summary>
+    public void RestoreDynamicState(GameStateSnapshot snapshot)
+    {
+        if (snapshot.BlockCount <= 0)
+        {
+            throw new ArgumentException("Snapshot must contain at least one block.", nameof(snapshot));
+        }
+
+        var restoredBlocks = new List<Block>(snapshot.BlockCount);
+        foreach (BlockState blockState in snapshot.Blocks)
+        {
+            restoredBlocks.Add(new Block(blockState.X, blockState.Y, blockState.Value));
+        }
+
+        ValidateBlocks(restoredBlocks, nameof(snapshot));
+
+        GameOverResult computed = EvaluateGameOver(restoredBlocks);
+        if (computed != snapshot.GameOver)
+        {
+            throw new ArgumentException(
+                $"Snapshot status {snapshot.GameOver} does not match computed status {computed}.",
+                nameof(snapshot));
+        }
+
+        blocks.Clear();
+        blocks.AddRange(restoredBlocks);
+        gameOver = snapshot.GameOver;
     }
 
     /// <summary>
@@ -247,15 +293,7 @@ public class Puzzle
     /// </summary>
     public void CheckWinConditions()
     {
-        if (blocks.Count == 1)
-        {
-            gameOver = blocks[0].Value == Target
-                ? GameOverResult.WIN
-                : GameOverResult.LOSE;
-            return;
-        }
-
-        gameOver = GameOverResult.NOT_YET;
+        gameOver = EvaluateGameOver(blocks);
     }
 
     private (int x, int y, long value, bool moved) ResolveMove(Block block, Block.Direction direction)
@@ -355,29 +393,44 @@ public class Puzzle
         return result;
     }
 
-    private void ValidateInitialBlocks()
+    private void ValidateBlocks(IReadOnlyList<Block> blocksToValidate, string paramName)
     {
         var positions = new HashSet<(int x, int y)>();
-        foreach (Block block in blocks)
+        foreach (Block block in blocksToValidate)
         {
             if (!IsInsideBoard(block.X, block.Y))
             {
                 throw new ArgumentException(
-                    $"Block at ({block.X}, {block.Y}) is out of bounds.");
+                    $"Block at ({block.X}, {block.Y}) is out of bounds.",
+                    paramName);
             }
 
             if (tiles[block.X, block.Y].IsWall)
             {
                 throw new ArgumentException(
-                    $"Block at ({block.X}, {block.Y}) cannot be placed on a wall tile.");
+                    $"Block at ({block.X}, {block.Y}) cannot be placed on a wall tile.",
+                    paramName);
             }
 
             if (!positions.Add((block.X, block.Y)))
             {
                 throw new ArgumentException(
-                    $"Duplicate block position detected at ({block.X}, {block.Y}).");
+                    $"Duplicate block position detected at ({block.X}, {block.Y}).",
+                    paramName);
             }
         }
+    }
+
+    private GameOverResult EvaluateGameOver(IReadOnlyList<Block> blocksForState)
+    {
+        if (blocksForState.Count == 1)
+        {
+            return blocksForState[0].Value == Target
+                ? GameOverResult.WIN
+                : GameOverResult.LOSE;
+        }
+
+        return GameOverResult.NOT_YET;
     }
 
     private static string FormatTileDebugValue(Tile tile)
@@ -397,6 +450,41 @@ public class Puzzle
         WIN,
         LOSE,
         NOT_YET
+    }
+
+    /// <summary>
+    /// Immutable block payload used in dynamic state snapshots.
+    /// </summary>
+    public readonly struct BlockState
+    {
+        public int X { get; }
+        public int Y { get; }
+        public long Value { get; }
+
+        public BlockState(int x, int y, long value)
+        {
+            X = x;
+            Y = y;
+            Value = value;
+        }
+    }
+
+    /// <summary>
+    /// Dynamic state payload for undo/redo.
+    /// </summary>
+    public readonly struct GameStateSnapshot
+    {
+        private readonly BlockState[] blockStates;
+
+        internal GameStateSnapshot(BlockState[] blockStates, GameOverResult gameOver)
+        {
+            this.blockStates = blockStates ?? throw new ArgumentNullException(nameof(blockStates));
+            GameOver = gameOver;
+        }
+
+        public IReadOnlyList<BlockState> Blocks => blockStates ?? Array.Empty<BlockState>();
+        public int BlockCount => blockStates?.Length ?? 0;
+        public GameOverResult GameOver { get; }
     }
 
     /// <summary>

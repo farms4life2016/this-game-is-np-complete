@@ -1,25 +1,29 @@
 using System;
+using System.Collections.Generic;
 
 internal static class Program
 {
     private static void Main()
     {
         Console.WriteLine("NP-Complete Puzzle CLI");
-        Console.WriteLine("Controls: w/a/s/d + Enter, r = reset puzzle, q = quit.");
+        Console.WriteLine("Controls: w/a/s/d + Enter, u = undo, y = redo, r = reset puzzle, q = quit.");
         Console.WriteLine();
 
         Puzzle puzzle = CreateSamplePuzzle();
+        var undoStack = new Stack<Puzzle.GameStateSnapshot>();
+        var redoStack = new Stack<Puzzle.GameStateSnapshot>();
 
         while (true)
         {
             Console.WriteLine(puzzle.ToString());
+            Console.WriteLine($"History: undo={undoStack.Count}, redo={redoStack.Count}");
 
             if (puzzle.GameOver != Puzzle.GameOverResult.NOT_YET)
             {
                 Console.WriteLine($"Game over: {puzzle.GameOver}");
             }
 
-            Console.Write("Command (w/a/s/d, r, q): ");
+            Console.Write("Command (w/a/s/d, u, y, r, q): ");
             string input = Console.ReadLine();
             if (string.IsNullOrWhiteSpace(input))
             {
@@ -36,14 +40,58 @@ internal static class Program
             if (command == 'r')
             {
                 puzzle = CreateSamplePuzzle();
+                undoStack.Clear();
+                redoStack.Clear();
                 Console.WriteLine("Puzzle reset.");
+                Console.WriteLine();
+                continue;
+            }
+
+            if (command == 'u')
+            {
+                if (undoStack.Count == 0)
+                {
+                    Console.WriteLine("Nothing to undo.");
+                    Console.WriteLine();
+                    continue;
+                }
+
+                Puzzle beforeUndo = puzzle.Clone();
+                redoStack.Push(puzzle.CaptureDynamicState());
+                puzzle.RestoreDynamicState(undoStack.Pop());
+                Console.WriteLine("Undo:");
+                Console.WriteLine("Before:");
+                Console.WriteLine(beforeUndo.ToString());
+                Console.WriteLine("After:");
+                Console.WriteLine(puzzle.ToString());
+                Console.WriteLine();
+                continue;
+            }
+
+            if (command == 'y')
+            {
+                if (redoStack.Count == 0)
+                {
+                    Console.WriteLine("Nothing to redo.");
+                    Console.WriteLine();
+                    continue;
+                }
+
+                Puzzle beforeRedo = puzzle.Clone();
+                undoStack.Push(puzzle.CaptureDynamicState());
+                puzzle.RestoreDynamicState(redoStack.Pop());
+                Console.WriteLine("Redo:");
+                Console.WriteLine("Before:");
+                Console.WriteLine(beforeRedo.ToString());
+                Console.WriteLine("After:");
+                Console.WriteLine(puzzle.ToString());
                 Console.WriteLine();
                 continue;
             }
 
             if (!TryParseDirection(command, out Block.Direction direction))
             {
-                Console.WriteLine("Invalid command. Use w/a/s/d, r, or q.");
+                Console.WriteLine("Invalid command. Use w/a/s/d, u, y, r, or q.");
                 Console.WriteLine();
                 continue;
             }
@@ -55,12 +103,14 @@ internal static class Program
                 continue;
             }
 
-            Puzzle before = puzzle.Clone();
+            undoStack.Push(puzzle.CaptureDynamicState());
+            Puzzle beforeMove = puzzle.Clone();
             Puzzle.TurnResult result = puzzle.Simulate(direction);
+            redoStack.Clear();
 
             Console.WriteLine($"Move: {direction}");
             Console.WriteLine("Before:");
-            Console.WriteLine(before.ToString());
+            Console.WriteLine(beforeMove.ToString());
             Console.WriteLine("After:");
             Console.WriteLine(puzzle.ToString());
             Console.WriteLine(
