@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\Assets\Scripts\model\Tile.cs" Link="Model\Tile.cs" />
+    <Compile Include="..\..\Assets\Scripts\model\Block.cs" Link="Model\Block.cs" />
+    <Compile Include="..\..\Assets\Scripts\model\Puzzle.cs" Link="Model\Puzzle.cs" />
+  </ItemGroup>
+</Project>

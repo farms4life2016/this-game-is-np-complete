@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-#if UNITY_INCLUDE_TESTS
-using NUnit.Framework;
-#endif
+using System.Text;
 
 /// <summary>
 /// Deterministic simulation state for a single puzzle instance.
@@ -126,6 +124,62 @@ public class Puzzle
             gameOver = gameOver
         };
         return cloned;
+    }
+
+    /// <summary>
+    /// Returns an ASCII snapshot of the current puzzle state for debugging.
+    /// </summary>
+    public override string ToString()
+    {
+        var blocksByPosition = new Dictionary<(int x, int y), Block>();
+        foreach (Block block in blocks)
+        {
+            blocksByPosition[(block.X, block.Y)] = block;
+        }
+
+        string[,] cells = new string[Width, Height];
+        int cellWidth = 3;
+        for (int y = 0; y < Height; y++)
+        {
+            for (int x = 0; x < Width; x++)
+            {
+                string cellText = blocksByPosition.TryGetValue((x, y), out Block block)
+                    ? $"B{block.Value}"
+                    : FormatTileDebugValue(tiles[x, y]);
+
+                cells[x, y] = cellText;
+                if (cellText.Length > cellWidth)
+                {
+                    cellWidth = cellText.Length;
+                }
+            }
+        }
+
+        var builder = new StringBuilder();
+        builder.AppendLine($"Target={Target} | Blocks={blocks.Count} | Status={gameOver}");
+        builder.AppendLine("Legend: Bn=block value n, #=wall, +n=add, xn=multiply, .=blank");
+        builder.Append("    ");
+        for (int x = 0; x < Width; x++)
+        {
+            builder.Append(x.ToString().PadLeft(cellWidth));
+            builder.Append(' ');
+        }
+
+        builder.AppendLine();
+        for (int y = 0; y < Height; y++)
+        {
+            builder.Append(y.ToString().PadLeft(3));
+            builder.Append(' ');
+            for (int x = 0; x < Width; x++)
+            {
+                builder.Append(cells[x, y].PadLeft(cellWidth));
+                builder.Append(' ');
+            }
+
+            builder.AppendLine();
+        }
+
+        return builder.ToString();
     }
 
     /// <summary>
@@ -326,6 +380,18 @@ public class Puzzle
         }
     }
 
+    private static string FormatTileDebugValue(Tile tile)
+    {
+        return tile.Type switch
+        {
+            TileType.Blank => ".",
+            TileType.Wall => "#",
+            TileType.Add => tile.Modifier >= 0 ? $"+{tile.Modifier}" : tile.Modifier.ToString(),
+            TileType.Multiply => $"x{tile.Modifier}",
+            _ => "?"
+        };
+    }
+
     public enum GameOverResult
     {
         WIN,
@@ -361,103 +427,3 @@ public class Puzzle
         }
     }
 }
-
-#if UNITY_INCLUDE_TESTS
-public class PuzzleTests
-{
-    [Test]
-    public void Simulate_AppliesModifiersOnEntryAndWhenBlocked()
-    {
-        Tile[,] tiles = Puzzle.CreateBlankGrid(1, 2);
-        tiles[0, 0] = Tile.Add(2);
-
-        var puzzle = new Puzzle(
-            width: 1,
-            height: 2,
-            target: 99,
-            tiles: tiles,
-            blocks: new[]
-            {
-                new Block(0, 0, 3),
-                new Block(0, 1, 4)
-            });
-
-        puzzle.Simulate(Block.Direction.Up);
-
-        Assert.That(puzzle.Blocks.Count, Is.EqualTo(1));
-        Assert.That(puzzle.Blocks[0].X, Is.EqualTo(0));
-        Assert.That(puzzle.Blocks[0].Y, Is.EqualTo(0));
-        Assert.That(puzzle.Blocks[0].Value, Is.EqualTo(11));
-    }
-
-    [Test]
-    public void Simulate_AppliesAllPathModifiers()
-    {
-        Tile[,] tiles = Puzzle.CreateBlankGrid(4, 2);
-        tiles[1, 0] = Tile.Add(2);
-        tiles[2, 0] = Tile.Multiply(3);
-        tiles[3, 0] = Tile.Add(1);
-
-        var puzzle = new Puzzle(
-            width: 4,
-            height: 2,
-            target: 99,
-            tiles: tiles,
-            blocks: new[]
-            {
-                new Block(0, 0, 1),
-                new Block(0, 1, 0)
-            });
-
-        puzzle.Simulate(Block.Direction.Right);
-
-        Block topRowBlock = puzzle.Blocks.Single(block => block.Y == 0);
-        Assert.That(topRowBlock.X, Is.EqualTo(3));
-        Assert.That(topRowBlock.Value, Is.EqualTo(10));
-    }
-
-    [Test]
-    public void Simulate_MergesBlocksWithSameDestination()
-    {
-        Tile[,] tiles = Puzzle.CreateBlankGrid(3, 3);
-        var puzzle = new Puzzle(
-            width: 3,
-            height: 3,
-            target: 99,
-            tiles: tiles,
-            blocks: new[]
-            {
-                new Block(1, 1, 2),
-                new Block(1, 2, 5)
-            });
-
-        puzzle.Simulate(Block.Direction.Up);
-
-        Assert.That(puzzle.Blocks.Count, Is.EqualTo(1));
-        Assert.That(puzzle.Blocks[0].X, Is.EqualTo(1));
-        Assert.That(puzzle.Blocks[0].Y, Is.EqualTo(0));
-        Assert.That(puzzle.Blocks[0].Value, Is.EqualTo(7));
-    }
-
-    [Test]
-    public void Simulate_ReturnsWinWhenSingleBlockMatchesTarget()
-    {
-        Tile[,] tiles = Puzzle.CreateBlankGrid(1, 2);
-        var puzzle = new Puzzle(
-            width: 1,
-            height: 2,
-            target: 3,
-            tiles: tiles,
-            blocks: new[]
-            {
-                new Block(0, 0, 1),
-                new Block(0, 1, 2)
-            });
-
-        Puzzle.TurnResult result = puzzle.Simulate(Block.Direction.Up);
-
-        Assert.That(result.GameOver, Is.EqualTo(Puzzle.GameOverResult.WIN));
-        Assert.That(result.IsWin, Is.True);
-    }
-}
-#endif

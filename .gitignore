@@ -43,6 +43,7 @@ ExportedObj/
 *.csproj
 *.unityproj
 *.sln
+*.slnx
 *.suo
 *.tmp
 *.user
@@ -100,3 +101,8 @@ InitTestScene*.unity*
 
 .vscode
 *.vsix
+
+# Local .NET tool outputs (e.g. CLI simulators under Tools/)
+/Tools/**/bin/
+/Tools/**/obj/
+!Tools/**/*.csproj
