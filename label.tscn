@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://yryb6ujphd71"]
+
+[ext_resource type="Texture2D" uid="uid://rgt63y2w5ls7" path="res://icon.svg" id="1_06tve"]
+[ext_resource type="Script" uid="uid://c01547dwwc1if" path="res://sprite_2d.gd" id="2_i3osk"]
+
+[node name="Node2D" type="Node2D" unique_id=221258391]
+
+[node name="Label" type="Label" parent="." unique_id=61693336]
+offset_left = 451.0
+offset_top = 43.0
+offset_right = 584.0
+offset_bottom = 66.0
+text = "GRAZE THE ROOF"
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=6667158]
+position = Vector2(613, 318)
+texture = ExtResource("1_06tve")
+script = ExtResource("2_i3osk")
+
+[node name="Timer" type="Timer" parent="Sprite2D" unique_id=1983476011]
+autostart = true
+
+[node name="Button" type="Button" parent="." unique_id=539308363]
+offset_left = 601.0
+offset_top = 477.0
+offset_right = 1090.0
+offset_bottom = 628.0
+text = "CLICK HERE TO EXPLODE!"
+
+[connection signal="timeout" from="Sprite2D/Timer" to="Sprite2D" method="_on_timer_timeout"]
+[connection signal="pressed" from="Button" to="Sprite2D" method="_on_button_pressed"]
