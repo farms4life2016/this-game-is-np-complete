@@ -11,14 +11,14 @@ enum EnemyType {
 
 var type: EnemyType
 
-var homebase: Vertex
+var homebase: int
 
-func move(newbase: Vertex):
-	# remove self from homebase enemies list
-	# and add self to newbase enemies list.
-	# keep arrays sorted!
-	var idx = homebase.enemies.bsearch(uuid)
-	homebase.enemies.remove_at(idx)
-	
-	idx = newbase.enemies.bsearch(uuid)
-	newbase.enemies.insert(idx, uuid)
+#func move(newbase: Vertex):
+	## remove self from homebase enemies list
+	## and add self to newbase enemies list.
+	## keep arrays sorted!
+	#var idx = homebase.enemies.bsearch(uuid)
+	#homebase.enemies.remove_at(idx)
+	#
+	#idx = newbase.enemies.bsearch(uuid)
+	#newbase.enemies.insert(idx, uuid)

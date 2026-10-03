@@ -12,9 +12,9 @@ var drift_direction: Vector2i
 var turn: int
 
 enum GameStatus {
-	win,
-	loss,
-	in_progress
+	ESCAPED,
+	CAPTURED,
+	IN_PROGRESS
 }
 
 var status: GameStatus
