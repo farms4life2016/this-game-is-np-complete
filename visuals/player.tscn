@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://bx4e5uyx0mert"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1npga"]
+albedo_color = Color(0.67058825, 0, 0, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_2qcbj"]
+material = SubResource("StandardMaterial3D_1npga")
+height = 1.0
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_tgu70"]
+height = 1.0
+
+[node name="Player" type="CharacterBody3D" unique_id=448988185]
+
+[node name="Pivot" type="Node3D" parent="." unique_id=1343523986]
+
+[node name="PlaceholderModel" type="MeshInstance3D" parent="Pivot" unique_id=1176317120]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("CylinderMesh_2qcbj")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=977798895]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("CylinderShape3D_tgu70")
