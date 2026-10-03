@@ -14,7 +14,7 @@ var down_vertex: int
 # left/right/up/down is self-explanatory
 # zero vector means cancel drift
 var has_item: bool
-var item: Vector2i
+var item: Consts.Direction
 
 # stores uuid of enemies on this vertex, assume sorted
 var enemies: Array[int]

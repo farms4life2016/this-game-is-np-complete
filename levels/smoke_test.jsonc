@@ -3,7 +3,7 @@
     "version": "ASCII schema v1.0",
     "base": 4,             // int, horizontal length
     "height": 3,           // int, vertical length
-    "drift": "none",       // "none" | "left" | "right" | "up" | "down"
+    "drift": "zero",       // "zero" | "left" | "right" | "up" | "down"
     "ascii": [
         "X   O-E",         // omit vertex = write space instead of ascii char
         "|   | |",         // omit edge = write space instead of '-' or '|'
@@ -14,7 +14,7 @@
     "definitions": {         // map of every vertex char
         // if fields omitted, assume these defaults:
         "O": {
-            "item": "none",   // "none" | "left" | "right" | "up" | "down" | "cancel"
+            "item": "none",   // "none" | "left" | "right" | "up" | "down" | "zero"
             "enemies": [],    // array of {"type" : ..., "facing": ...}
             "player": false,
             "exit": false
@@ -41,7 +41,7 @@
             "item": "left"
         },
         "X": {
-            "item": "cancel"
+            "item": "zero"
         }
     }
 }

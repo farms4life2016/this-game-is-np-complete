@@ -2,7 +2,7 @@ class_name Enemy extends Resource
 
 var uuid: int
 
-var facing: Vector2i
+var facing: Consts.Direction
 
 enum EnemyType {
 	STATIONARY,

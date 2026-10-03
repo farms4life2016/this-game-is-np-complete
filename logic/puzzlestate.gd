@@ -7,7 +7,7 @@ var enemies: Array[Enemy]
 
 var cscientist: CScientist
 
-var drift_direction: Vector2i
+var drift_direction: Consts.Direction
 
 var turn: int
 
