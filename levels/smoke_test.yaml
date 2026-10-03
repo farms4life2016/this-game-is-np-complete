@@ -1,0 +1,34 @@
+
+level:
+  name: "Smoke Test"
+  base: 4
+  height: 3
+  initial_drift: "none"
+  ascii: []
+    O   O-E
+    |   | |
+    O-O-B-O
+    | | |
+    P-O-O
+  definitions:
+    - "O":
+      - "item": "none"
+      - "enemies": []
+      - "player": false
+      - "exit": false
+    - "P":
+      - "item": "none"
+      - "enemies": []
+      - "player": true
+    - "E":
+      - item: "none"
+      - "enemies": []
+      - "player": false
+      - "exit": true
+    - "B":
+      - item: "none"
+      - "enemies":
+        - "type": stationary
+          "facing": "left"
+      
+      

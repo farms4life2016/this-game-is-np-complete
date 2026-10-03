@@ -1,0 +1,47 @@
+{
+    "name": "Hello World", // string
+    "version": "ASCII schema v1.0",
+    "base": 4,             // int, horizontal length
+    "height": 3,           // int, vertical length
+    "drift": "none",       // "none" | "left" | "right" | "up" | "down"
+    "ascii": [
+        "X   O-E",         // omit vertex = write space instead of ascii char
+        "|   | |",         // omit edge = write space instead of '-' or '|'
+        "O-O-O-B",
+        "| | |  ",
+        "P-O-L  "
+    ],
+    "definitions": {         // map of every vertex char
+        // if fields omitted, assume these defaults:
+        "O": {
+            "item": "none",   // "none" | "left" | "right" | "up" | "down" | "cancel"
+            "enemies": [],    // array of {"type" : ..., "facing": ...}
+            "player": false,
+            "exit": false
+        },
+        "P": {
+            "player": true
+        },
+        "E": {
+            "exit": true
+        },
+        "B": {
+            "enemies": [
+                {
+                    "type": "stationary",  // currently we support: "stationary", "sniper"
+                    "facing": "left"       // "left" | "right" | "up" | "down"
+                },
+                {
+                    "type": "sniper",
+                    "facing": "up"
+                }
+            ]
+        },
+        "L": {
+            "item": "left"
+        },
+        "X": {
+            "item": "cancel"
+        }
+    }
+}
