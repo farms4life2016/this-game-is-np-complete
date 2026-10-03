@@ -19,3 +19,8 @@ mesh = SubResource("BoxMesh_tgu70")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=560933210]
 transform = Transform3D(1, 0, 0, 0, 0.49999997, 0.86602545, 0, -0.86602545, 0.49999997, 0, 20, 0)
 shadow_enabled = true
+
+[node name="CameraPivot" type="Marker3D" parent="." unique_id=1526507461]
+transform = Transform3D(1, 0, 0, 0, 0.70710677, 0.70710677, 0, -0.70710677, 0.70710677, 0, 3, 5)
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot" unique_id=1742726698]
