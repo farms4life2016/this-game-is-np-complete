@@ -1,5 +1,7 @@
 [gd_scene format=3 uid="uid://bk4epuy7dgkuc"]
 
+[ext_resource type="Script" uid="uid://ceewfkkw5ko1u" path="res://visuals/free_cam.gd" id="1_l2q4b"]
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_tgu70"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_tgu70"]
@@ -21,6 +23,7 @@ transform = Transform3D(1, 0, 0, 0, 0.49999997, 0.86602545, 0, -0.86602545, 0.49
 shadow_enabled = true
 
 [node name="CameraPivot" type="Marker3D" parent="." unique_id=1526507461]
-transform = Transform3D(1, 0, 0, 0, 0.70710677, 0.70710677, 0, -0.70710677, 0.70710677, 0, 3, 5)
+transform = Transform3D(1, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, 0, 3, 5)
 
-[node name="Camera3D" type="Camera3D" parent="CameraPivot" unique_id=1742726698]
+[node name="FreeCam" type="Camera3D" parent="CameraPivot" unique_id=1742726698]
+script = ExtResource("1_l2q4b")
