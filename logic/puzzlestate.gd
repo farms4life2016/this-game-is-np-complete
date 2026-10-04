@@ -1,5 +1,8 @@
 class_name PuzzleState extends Resource
 
+var base: int
+var height: int
+
 # sorted by uuid
 var vertices: Array[Vertex]
 
@@ -29,4 +32,6 @@ func deep_clone() -> PuzzleState:
 	ans.drift_direction = drift_direction
 	ans.turn = turn
 	ans.status = status
+	ans.base = base
+	ans.height = height
 	return ans

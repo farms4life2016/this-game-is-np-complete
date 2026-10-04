@@ -3,7 +3,7 @@ extends Camera3D
 ## Hold RMB: look around + WASD (forward/back/strafe) + Q/E (down/up).
 ## Mouse wheel (while RMB held): change speed. Shift: boost.
 
-@export var move_speed: float = 8.0          # metres per second
+@export var move_speed: float = 8.0           # metres per second
 @export var mouse_sensitivity: float = 0.003  # radians per pixel
 
 var _yaw: float = 0.0

@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://bk4epuy7dgkuc"]
 
+[ext_resource type="Script" uid="uid://bnjri2pv8vmrx" path="res://visuals/board.gd" id="1_a3qr2"]
 [ext_resource type="Script" uid="uid://ceewfkkw5ko1u" path="res://visuals/free_cam.gd" id="1_l2q4b"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_tgu70"]
@@ -8,9 +9,11 @@
 size = Vector3(10, 2, 10)
 
 [node name="Board" type="Node3D" unique_id=1679943365]
+script = ExtResource("1_a3qr2")
 
 [node name="Ground" type="StaticBody3D" parent="." unique_id=977790835]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+visible = false
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ground" unique_id=683518314]
 shape = SubResource("BoxShape3D_tgu70")

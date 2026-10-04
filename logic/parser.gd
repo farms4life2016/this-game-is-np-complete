@@ -14,6 +14,9 @@ static func parse_json(input_dict: Dictionary) -> PuzzleState:
 	var drift_dir: String = input_dict["drift"]
 	p.drift_direction = Consts.string2direction[drift_dir]
 	
+	p.base = input_dict["base"]
+	p.height = input_dict["height"]
+	
 	# assumption: the puzzle starts out in_progress state
 	p.status = PuzzleState.GameStatus.IN_PROGRESS
 	p.turn = 0
