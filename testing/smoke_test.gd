@@ -51,20 +51,38 @@ const ARROW = preload("res://testing/arrow.tscn")
 
 func _ready() -> void:
 	# run stuff here
-	var p1: PuzzleState = parse_json(leveljson)
+	var p1: PuzzleState = Parser.parse_json(leveljson)
 	print(leveljson, "\n", p1)
 	draw_puzzle(p1)
-	
-	# NOTE: deep copy DOES NOT WORK. you need to write it yourself :(
-	
-	#var p2: PuzzleState = p1.duplicate_deep(2) # Resource.DeepDuplicateMode.DEEP_DUPLICATE_ALL
-	#
-	#print(p1, "\n", p1.vertices.size())
-	#print(p2, "\n", p2.vertices.size())
-	#print(p1 == p2)
-	#p2.vertices[0].enemies.append(69)
-	#print(p1.vertices[0].enemies, "\n", p2.vertices[0].enemies)
-	
+
+# this code can be optimized since all edges are rectilinear & same length
+func draw_edge(v1: Vector2, v2: Vector2, c: Color, thickness: float, yoffset: float) -> MeshInstance3D:
+	var dir := v2 - v1
+	var length := dir.length()
+
+	# A flat rectangle: length along local X, thickness along local Z
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(length, thickness)
+
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = c
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED  # visible from above and below
+	plane.material = mat
+
+	var mi := MeshInstance3D.new()
+	mi.mesh = plane
+
+	# Center on the midpoint of the edge (tiny y offset avoids z-fighting
+	# with anything else drawn at y = 0)
+	var mid := (v1 + v2) * 0.5
+	mi.position = Vector3(mid.x, yoffset, mid.y)
+
+	mi.rotation.y = atan2(-dir.y, dir.x)
+
+	add_child(mi)
+	return mi
+
+# this function is "static", i.e. freely moved into any other script
 func draw_puzzle(puzzle: PuzzleState) -> void:
 	
 	for vv in puzzle.vertices:
@@ -100,23 +118,35 @@ func draw_puzzle(puzzle: PuzzleState) -> void:
 			else:
 				arrow.rotation.z = PI/2
 			add_child(arrow)
-		
-		#for i in range(vv.enemies.size()):
-			#var ee := find_enemy_by_uuid(puzzle.enemies, vv.enemies[i])
-			#assert(ee != null)
-			#var ee_mi: MeshInstance3D = MeshInstance3D.new()
-			#ee_mi.mesh = SphereMesh.new()
-			#var ee_mat: StandardMaterial3D = StandardMaterial3D.new()
-			#if (ee.type == Enemy.EnemyType.STATIONARY):
-				#ee_mat.albedo_color = Color.AQUA
-			#elif (ee.type == Enemy.EnemyType.SNIPER):
-				#ee_mat.albedo_color = Color.DARK_GREEN
-			#ee_mi.material_override = ee_mat
-			#ee_mi.position = Vector3(vv.logical_location.x, 0.3 + i * 0.2, vv.logical_location.y)
-			#ee_mi.scale = Vector3(0.2, 0.2, 0.2)
-			#add_child(ee_mi)
 			
-	# more optimized enemy drawing code?
+		# draw edges: left and up edges vs. right and down edges
+		if (vv.left_vertex != -1):
+			var neighbour := puzzle.vertices[vv.left_vertex]
+			var start := Vector2(vv.logical_location)
+			var end := Vector2(neighbour.logical_location)
+			draw_edge(start, end, Color.CHARTREUSE, 0.05, 0.01)
+		if (vv.up_vertex != -1):
+			var neighbour := puzzle.vertices[vv.up_vertex]
+			var start := Vector2(vv.logical_location)
+			var end := Vector2(neighbour.logical_location)
+			draw_edge(start, end, Color.CHARTREUSE, 0.05, 0.01)
+		
+		# realistically we only need to draw the edge from one direction
+		# im just drawing the other direction to confirm bidirectional connection
+		if (vv.right_vertex != -1):
+			var neighbour := puzzle.vertices[vv.right_vertex]
+			var start := Vector2(vv.logical_location)
+			var end := Vector2(neighbour.logical_location)
+			draw_edge(start, end, Color.NAVY_BLUE, 0.15, 0.005)
+		if (vv.down_vertex != -1):
+			var neighbour := puzzle.vertices[vv.down_vertex]
+			var start := Vector2(vv.logical_location)
+			var end := Vector2(neighbour.logical_location)
+			draw_edge(start, end, Color.NAVY_BLUE, 0.15, 0.005)
+
+	# end for vv loop
+
+	# more optimized enemy drawing code
 	for ee in puzzle.enemies:
 		var home := puzzle.vertices[ee.homebase]
 		var idx := home.enemies.bsearch(ee.uuid)
@@ -133,24 +163,18 @@ func draw_puzzle(puzzle: PuzzleState) -> void:
 		ee_mi.position = Vector3(home.logical_location.x, 0.2 + idx * 0.2, home.logical_location.y)
 		ee_mi.scale = Vector3(0.2, 0.2, 0.2)
 		add_child(ee_mi)
+		
+	# draw the drift direction
+	var drift_arrow: Node3D = ARROW.instantiate()
+	drift_arrow.position = Vector3(-1, 0.2, 1)
+	var drift_dir: Consts.Direction = puzzle.drift_direction
+	if (drift_dir != Consts.Direction.ZERO):
+		drift_arrow.rotation.y = Consts.direction2rotation[drift_dir]
+	else:
+		drift_arrow.rotation.z = PI/2
+	add_child(drift_arrow)
+	
 
-#static func find_enemy_by_uuid(enemies: Array[Enemy], uuid: int) -> Enemy:
-	#var lo := 0
-	#var hi := enemies.size()
-#
-	#while lo < hi:
-		#var mid := (lo + hi) / 2
-		#var enemy := enemies[mid]
-#
-		#if enemy.uuid < uuid:
-			#lo = mid + 1
-		#else:
-			#hi = mid
-#
-	#if lo < enemies.size() and enemies[lo].uuid == uuid:
-		#return enemies[lo]
-#
-	#return null
 	
 static func parse_json(input_dict: Dictionary) -> PuzzleState:
 	var p: PuzzleState = PuzzleState.new()
@@ -170,25 +194,33 @@ static func parse_json(input_dict: Dictionary) -> PuzzleState:
 	p.status = PuzzleState.GameStatus.IN_PROGRESS
 	p.turn = 0
 	
+	var previous_row: Dictionary[int, int] = {}
+	
 	# convert ascii into graph
 	for h in range(0, 2*height, 2):
-		var str: String = ascii[h]
+		
+		var row_str: String = ascii[h]
+		var current_row: Dictionary[int, int] = {}
+		
 		for b in range(0, 2*base, 2):
-			var char: String = str[b]
+			var vertex_char: String = row_str[b]
 			
 			# empty space means no vertex here!
-			if char == ' ':
+			if vertex_char == ' ':
 				continue
 			
 			# otherwise, construct vertex from its definiton
 			var new_vertex: Vertex = Vertex.new()
-			var additional_info: Dictionary = defn[char]
+			var additional_info: Dictionary = defn[vertex_char]
 			
 			# location is determined as cartesian coords. (0,0) in lower left corner of 2d array
+			@warning_ignore_start("integer_division") # b and h are guarenteed even ints! stfu!
 			new_vertex.logical_location = Vector2i(b / 2, h / 2 - height + 1)
+			@warning_ignore_restore("integer_division")
 			
 			# assign a unique uuid by incrementing counter
 			new_vertex.uuid = vertex_counter
+			current_row.set(b, new_vertex.uuid)
 			vertex_counter += 1
 			
 			# create item
@@ -259,8 +291,36 @@ static func parse_json(input_dict: Dictionary) -> PuzzleState:
 			else: # default if omitted: not an exit
 				new_vertex.is_exit = false
 			
-			# now construct the edges...
+			# now construct the edges. check for left and up neighbours only,
+			# but make it two-way. this guarentees all edges covered
+			new_vertex.left_vertex = Consts.OUTTA_BOUNDS
+			new_vertex.right_vertex = Consts.OUTTA_BOUNDS
+			new_vertex.up_vertex = Consts.OUTTA_BOUNDS
+			new_vertex.down_vertex = Consts.OUTTA_BOUNDS
+			# i have no idea if -1 will help me catch indexouttabounds, cuz this is Python
+			
+			if (b > 0): # check left. missing edges are left blank
+				if (row_str[b-1] != ' '):
+					# take advantage of the fact that uuids increment by 1 from left to right
+					# so your left neighbour has uuid one less than your own uuid
+					var left_uuid := new_vertex.uuid - 1
+					new_vertex.left_vertex = left_uuid
+					p.vertices[left_uuid].right_vertex = new_vertex.uuid
+			
+			if (h > 0): # check up.
+				if (ascii[h-1][b] != ' '):
+					# we need to store extra information to get nodes in the previous row
+					var up_uuid := previous_row[b]
+					new_vertex.up_vertex = up_uuid
+					p.vertices[up_uuid].down_vertex = new_vertex.uuid
 			
 			p.vertices.append(new_vertex)
+		
+		# end for-b
+		
+		# update previous row
+		previous_row = current_row
+	
+	# end for-h
 			
 	return p

@@ -24,3 +24,4 @@ const direction2rotation = {
 	Direction.LEFT: PI,
 	Direction.DOWN: -PI/2
 }
+const OUTTA_BOUNDS = -1
