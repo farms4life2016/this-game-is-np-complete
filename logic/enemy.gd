@@ -16,6 +16,10 @@ const string2enemy_type = {
 
 var type: EnemyType
 
+const DEAD_CHAT = -1    # used to represent lazy-deleted enemies
+# if lazy deletion isn't working, use a dict instead.
+# (or pointers LOL)
+
 var homebase: int
 
 func deep_clone() -> Enemy:
