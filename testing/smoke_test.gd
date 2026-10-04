@@ -51,9 +51,19 @@ const ARROW = preload("res://testing/arrow.tscn")
 
 func _ready() -> void:
 	# run stuff here
-	var puzzle: PuzzleState = parse_json(leveljson)
-	print(leveljson, "\n", puzzle)
-	draw_puzzle(puzzle)
+	var p1: PuzzleState = parse_json(leveljson)
+	print(leveljson, "\n", p1)
+	draw_puzzle(p1)
+	
+	# NOTE: deep copy DOES NOT WORK. you need to write it yourself :(
+	
+	#var p2: PuzzleState = p1.duplicate_deep(2) # Resource.DeepDuplicateMode.DEEP_DUPLICATE_ALL
+	#
+	#print(p1, "\n", p1.vertices.size())
+	#print(p2, "\n", p2.vertices.size())
+	#print(p1 == p2)
+	#p2.vertices[0].enemies.append(69)
+	#print(p1.vertices[0].enemies, "\n", p2.vertices[0].enemies)
 	
 func draw_puzzle(puzzle: PuzzleState) -> void:
 	
@@ -67,7 +77,7 @@ func draw_puzzle(puzzle: PuzzleState) -> void:
 		else:
 			mat.albedo_color = Color.BLACK
 		mi.material_override = mat
-		mi.position = Vector3i(vv.logical_location.x, 0, vv.logical_location.y)
+		mi.position = Vector3(vv.logical_location.x, 0, vv.logical_location.y)
 		mi.scale = Vector3(0.2, 0.1, 0.2)
 		add_child(mi)
 		
@@ -77,15 +87,70 @@ func draw_puzzle(puzzle: PuzzleState) -> void:
 			var player_mat: StandardMaterial3D = StandardMaterial3D.new()
 			player_mat.albedo_color = Color.BISQUE
 			player_mi.material_override = player_mat
-			player_mi.position = Vector3i(vv.logical_location.x, 0.2, vv.logical_location.y)
+			player_mi.position = Vector3(vv.logical_location.x, 0.2, vv.logical_location.y)
 			player_mi.scale = Vector3(0.2, 0.2, 0.2)
 			add_child(player_mi)
 			
 		if (vv.has_item):
 			var arrow: Node3D = ARROW.instantiate()
-			arrow.position = Vector3i(vv.logical_location.x, 0.3, vv.logical_location.y)
+			arrow.position = Vector3(vv.logical_location.x, 0.2, vv.logical_location.y)
+			var arrow_direction: Consts.Direction = vv.item
+			if (arrow_direction != Consts.Direction.ZERO):
+				arrow.rotation.y = Consts.direction2rotation[arrow_direction]
+			else:
+				arrow.rotation.z = PI/2
 			add_child(arrow)
 		
+		#for i in range(vv.enemies.size()):
+			#var ee := find_enemy_by_uuid(puzzle.enemies, vv.enemies[i])
+			#assert(ee != null)
+			#var ee_mi: MeshInstance3D = MeshInstance3D.new()
+			#ee_mi.mesh = SphereMesh.new()
+			#var ee_mat: StandardMaterial3D = StandardMaterial3D.new()
+			#if (ee.type == Enemy.EnemyType.STATIONARY):
+				#ee_mat.albedo_color = Color.AQUA
+			#elif (ee.type == Enemy.EnemyType.SNIPER):
+				#ee_mat.albedo_color = Color.DARK_GREEN
+			#ee_mi.material_override = ee_mat
+			#ee_mi.position = Vector3(vv.logical_location.x, 0.3 + i * 0.2, vv.logical_location.y)
+			#ee_mi.scale = Vector3(0.2, 0.2, 0.2)
+			#add_child(ee_mi)
+			
+	# more optimized enemy drawing code?
+	for ee in puzzle.enemies:
+		var home := puzzle.vertices[ee.homebase]
+		var idx := home.enemies.bsearch(ee.uuid)
+		# assert(home.enemies[idx] == ee.uuid)
+		
+		var ee_mi: MeshInstance3D = MeshInstance3D.new()
+		ee_mi.mesh = SphereMesh.new()
+		var ee_mat: StandardMaterial3D = StandardMaterial3D.new()
+		if (ee.type == Enemy.EnemyType.STATIONARY):
+			ee_mat.albedo_color = Color.AQUA
+		elif (ee.type == Enemy.EnemyType.SNIPER):
+			ee_mat.albedo_color = Color.DARK_GREEN
+		ee_mi.material_override = ee_mat
+		ee_mi.position = Vector3(home.logical_location.x, 0.2 + idx * 0.2, home.logical_location.y)
+		ee_mi.scale = Vector3(0.2, 0.2, 0.2)
+		add_child(ee_mi)
+
+#static func find_enemy_by_uuid(enemies: Array[Enemy], uuid: int) -> Enemy:
+	#var lo := 0
+	#var hi := enemies.size()
+#
+	#while lo < hi:
+		#var mid := (lo + hi) / 2
+		#var enemy := enemies[mid]
+#
+		#if enemy.uuid < uuid:
+			#lo = mid + 1
+		#else:
+			#hi = mid
+#
+	#if lo < enemies.size() and enemies[lo].uuid == uuid:
+		#return enemies[lo]
+#
+	#return null
 	
 static func parse_json(input_dict: Dictionary) -> PuzzleState:
 	var p: PuzzleState = PuzzleState.new()
@@ -156,7 +221,7 @@ static func parse_json(input_dict: Dictionary) -> PuzzleState:
 					# parse type and facing direction (str -> enum)
 					new_enemy.type = Enemy.string2enemy_type[type]
 					new_enemy.facing = Consts.string2direction[facing]
-						
+					
 					# add enemy to the vertex and puzzle state
 					new_enemy.homebase = new_vertex.uuid
 					new_vertex.enemies.append(new_enemy.uuid)

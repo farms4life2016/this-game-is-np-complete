@@ -15,3 +15,12 @@ const string2direction = {
 	"down": Direction.DOWN,
 	"zero": Direction.ZERO
 }
+
+# converts a direction to a rotation for the Y-axis
+# assumes that at zero rotation, the arrow points to the right
+const direction2rotation = {
+	Direction.RIGHT: 0,
+	Direction.UP: PI/2,
+	Direction.LEFT: PI,
+	Direction.DOWN: -PI/2
+}
