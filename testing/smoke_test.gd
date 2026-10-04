@@ -5,7 +5,7 @@ var leveljson = {
 	"version": "ASCII schema v1.0",
 	"base": 4,
 	"height": 3,
-	"drift": "zero",
+	"drift": "right",
 	"ascii": [
 		"X   O-E",
 		"|   | |",
@@ -53,7 +53,17 @@ func _ready() -> void:
 	# run stuff here
 	var p1: PuzzleState = Parser.parse_json(leveljson)
 	print(leveljson, "\n", p1)
-	draw_puzzle(p1)
+	# draw_puzzle(p1)
+	var p2 := Simulator.logic_step_directional(p1, Consts.Direction.RIGHT)
+	
+	print(p2.puzzle)
+	print(p2.phase1_events)
+	print(p2.phase2_events)
+	print(p2.phase3_events)
+	draw_puzzle(p2.puzzle)
+	
+	#p2 = Simulator.logic_step_directional(p2[Consts.Turn.PUZZLE], Consts.Direction.RIGHT)
+	
 
 # this code can be optimized since all edges are rectilinear & same length
 func draw_edge(v1: Vector2, v2: Vector2, c: Color, thickness: float, yoffset: float) -> MeshInstance3D:
@@ -156,9 +166,9 @@ func draw_puzzle(puzzle: PuzzleState) -> void:
 		var ee_mi: MeshInstance3D = MeshInstance3D.new()
 		ee_mi.mesh = SphereMesh.new()
 		var ee_mat: StandardMaterial3D = StandardMaterial3D.new()
-		if (ee.type == Enemy.EnemyType.STATIONARY):
+		if (ee.type == Enemy.Type.STATIONARY):
 			ee_mat.albedo_color = Color.AQUA
-		elif (ee.type == Enemy.EnemyType.SNIPER):
+		elif (ee.type == Enemy.Type.SNIPER):
 			ee_mat.albedo_color = Color.DARK_GREEN
 		ee_mi.material_override = ee_mat
 		ee_mi.position = Vector3(home.logical_location.x, 0.2 + idx * 0.2, home.logical_location.y)

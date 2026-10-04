@@ -24,4 +24,12 @@ const direction2rotation = {
 	Direction.LEFT: PI,
 	Direction.DOWN: -PI/2
 }
-const OUTTA_BOUNDS = -1
+
+enum PuzzleEvent {
+	PLAYER_MOVED,
+	PLAYER_CAPTURED,
+	PLAYER_ESCAPED,
+	ENEMY_MOVED,
+	ENEMY_ELIMINATED,
+	ITEM_CONSUMED
+}

@@ -5,6 +5,7 @@ var logical_location: Vector2i
 
 # store raw uuid, lookup actual vertex in array.
 # then, -1 represents "no vertex"
+const OUTTA_BOUNDS = -1
 var left_vertex: int
 var right_vertex: int
 var up_vertex: int

@@ -75,7 +75,7 @@ static func parse_json(input_dict: Dictionary) -> PuzzleState:
 					enemy_counter += 1
 					
 					# parse type and facing direction (str -> enum)
-					new_enemy.type = Enemy.string2enemy_type[type]
+					new_enemy.type = Enemy.string2type[type]
 					new_enemy.facing = Consts.string2direction[facing]
 					
 					# add enemy to the vertex and puzzle state
@@ -117,10 +117,10 @@ static func parse_json(input_dict: Dictionary) -> PuzzleState:
 			
 			# now construct the edges. check for left and up neighbours only,
 			# but make it two-way. this guarentees all edges covered
-			new_vertex.left_vertex = Consts.OUTTA_BOUNDS
-			new_vertex.right_vertex = Consts.OUTTA_BOUNDS
-			new_vertex.up_vertex = Consts.OUTTA_BOUNDS
-			new_vertex.down_vertex = Consts.OUTTA_BOUNDS
+			new_vertex.left_vertex = Vertex.OUTTA_BOUNDS
+			new_vertex.right_vertex = Vertex.OUTTA_BOUNDS
+			new_vertex.up_vertex = Vertex.OUTTA_BOUNDS
+			new_vertex.down_vertex = Vertex.OUTTA_BOUNDS
 			# i have no idea if -1 will help me catch indexouttabounds, cuz this is Python
 			
 			if (b > 0): # check left. missing edges are left blank
