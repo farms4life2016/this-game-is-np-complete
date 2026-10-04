@@ -5,7 +5,7 @@ var leveljson = {
 	"version": "ASCII schema v1.0",
 	"base": 4,
 	"height": 3,
-	"drift": "none",
+	"drift": "zero",
 	"ascii": [
 		"X   O-E",
 		"|   | |",
@@ -42,15 +42,50 @@ var leveljson = {
 			"item": "left"
 		},
 		"X": {
-			"item": "cancel"
+			"item": "zero"
 		}
 	}
 }
+
+const ARROW = preload("res://testing/arrow.tscn")
 
 func _ready() -> void:
 	# run stuff here
 	var puzzle: PuzzleState = parse_json(leveljson)
 	print(leveljson, "\n", puzzle)
+	draw_puzzle(puzzle)
+	
+func draw_puzzle(puzzle: PuzzleState) -> void:
+	
+	for vv in puzzle.vertices:
+		# draw vertex locations
+		var mi: MeshInstance3D = MeshInstance3D.new()
+		mi.mesh = TorusMesh.new()
+		var mat: StandardMaterial3D = StandardMaterial3D.new()
+		if (vv.is_exit): # exit indicator
+			mat.albedo_color = Color.YELLOW
+		else:
+			mat.albedo_color = Color.BLACK
+		mi.material_override = mat
+		mi.position = Vector3i(vv.logical_location.x, 0, vv.logical_location.y)
+		mi.scale = Vector3(0.2, 0.1, 0.2)
+		add_child(mi)
+		
+		if (vv.has_scientist):
+			var player_mi: MeshInstance3D = MeshInstance3D.new()
+			player_mi.mesh = SphereMesh.new()
+			var player_mat: StandardMaterial3D = StandardMaterial3D.new()
+			player_mat.albedo_color = Color.BISQUE
+			player_mi.material_override = player_mat
+			player_mi.position = Vector3i(vv.logical_location.x, 0.2, vv.logical_location.y)
+			player_mi.scale = Vector3(0.2, 0.2, 0.2)
+			add_child(player_mi)
+			
+		if (vv.has_item):
+			var arrow: Node3D = ARROW.instantiate()
+			arrow.position = Vector3i(vv.logical_location.x, 0.3, vv.logical_location.y)
+			add_child(arrow)
+		
 	
 static func parse_json(input_dict: Dictionary) -> PuzzleState:
 	var p: PuzzleState = PuzzleState.new()
@@ -64,18 +99,7 @@ static func parse_json(input_dict: Dictionary) -> PuzzleState:
 	
 	# parse the drift direction
 	var drift_dir: String = input_dict["drift"]
-	if (drift_dir == "left"):
-		p.drift_direction = Vector2i.LEFT
-	elif (drift_dir == "right"):
-		p.drift_direction = Vector2i.RIGHT
-	elif (drift_dir == "up"):
-		p.drift_direction = Vector2i.UP
-	elif (drift_dir == "down"):
-		p.drift_direction = Vector2i.DOWN
-	elif (drift_dir == "none"):
-		p.drift_direction = Vector2i.ZERO
-	else:
-		assert(1 == 0, "Invalid value for drift_dir: " + drift_dir)
+	p.drift_direction = Consts.string2direction[drift_dir]
 	
 	# assumption: the puzzle starts out in_progress state
 	p.status = PuzzleState.GameStatus.IN_PROGRESS
@@ -96,7 +120,7 @@ static func parse_json(input_dict: Dictionary) -> PuzzleState:
 			var additional_info: Dictionary = defn[char]
 			
 			# location is determined as cartesian coords. (0,0) in lower left corner of 2d array
-			new_vertex.logical_location = Vector2i(b / 2, h - h / 2 - 1)
+			new_vertex.logical_location = Vector2i(b / 2, h / 2 - height + 1)
 			
 			# assign a unique uuid by incrementing counter
 			new_vertex.uuid = vertex_counter
@@ -108,60 +132,30 @@ static func parse_json(input_dict: Dictionary) -> PuzzleState:
 				# TODO: replace these hardcoded magic strings with CONSTANTS 
 				if (value == "none"):
 					new_vertex.has_item = false
-					new_vertex.item = Vector2i.ZERO
-				elif (value == "left"):
-					new_vertex.has_item = true
-					new_vertex.item = Vector2i.LEFT
-				elif (value == "right"):
-					new_vertex.has_item = true
-					new_vertex.item = Vector2i.RIGHT
-				elif (value == "up"):
-					new_vertex.has_item = true
-					new_vertex.item = Vector2i.UP
-				elif (value == "down"):
-					new_vertex.has_item = true
-					new_vertex.item = Vector2i.DOWN
-				elif (value == "cancel"):
-					new_vertex.has_item = true
-					new_vertex.item = Vector2i.ZERO
+					new_vertex.item = Consts.Direction.ZERO
 				else:
-					assert(1 == 0, "Invalid value for item: " + value)
+					new_vertex.has_item = true
+					new_vertex.item = Consts.string2direction[value]
 					
 			else: # default if omitted: no item
 				new_vertex.has_item = false
-				new_vertex.item = Vector2i.ZERO
+				new_vertex.item = Consts.Direction.ZERO
 			
 			# create enemies
 			if (additional_info.has("enemies")):
 				var enemies: Array = additional_info["enemies"]
-				for i in range(enemies.size()):
+				for enemy in enemies:
 					var new_enemy: Enemy = Enemy.new()
-					var type: String = enemies[i]["type"]
-					var facing: String = enemies[i]["facing"]
+					var type: String = enemy["type"]
+					var facing: String = enemy["facing"]
 					
 					# assign a uuid
 					new_enemy.uuid = enemy_counter
 					enemy_counter += 1
 					
-					# parse type
-					if (type == "stationary"):
-						new_enemy.type = Enemy.EnemyType.STATIONARY
-					elif (type == "sniper"):
-						new_enemy.type = Enemy.EnemyType.SNIPER
-					else:
-						assert(1 == 0, "Invalid value for enemy.type: " + type)
-					
-					# parse facing direction
-					if (facing == "left"):
-						new_enemy.facing = Vector2i.LEFT
-					elif (facing == "right"):
-						new_enemy.facing = Vector2i.RIGHT
-					elif (facing == "up"):
-						new_enemy.facing = Vector2i.UP
-					elif (facing == "down"):
-						new_enemy.facing = Vector2i.DOWN
-					else:
-						assert(1 == 0, "Invalid value for enemy.facing: " + facing)
+					# parse type and facing direction (str -> enum)
+					new_enemy.type = Enemy.string2enemy_type[type]
+					new_enemy.facing = Consts.string2direction[facing]
 						
 					# add enemy to the vertex and puzzle state
 					new_enemy.homebase = new_vertex.uuid

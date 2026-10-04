@@ -9,6 +9,11 @@ enum EnemyType {
 	SNIPER
 }
 
+const string2enemy_type = {
+	"stationary": EnemyType.STATIONARY,
+	"sniper": EnemyType.SNIPER
+}
+
 var type: EnemyType
 
 var homebase: int
