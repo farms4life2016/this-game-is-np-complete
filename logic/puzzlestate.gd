@@ -18,3 +18,15 @@ enum GameStatus {
 }
 
 var status: GameStatus
+
+func deep_clone() -> PuzzleState:
+	var ans: PuzzleState = PuzzleState.new()
+	for vv in vertices:
+		ans.vertices.append(vv.deep_clone())
+	for ee in enemies:
+		ans.enemies.append(ee.deep_clone())
+	ans.cscientist = cscientist.deep_clone()
+	ans.drift_direction = drift_direction
+	ans.turn = turn
+	ans.status = status
+	return ans

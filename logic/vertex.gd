@@ -22,3 +22,19 @@ var enemies: Array[int]
 var has_scientist: bool
 
 var is_exit: bool
+
+func deep_clone() -> Vertex:
+	var ans: Vertex = Vertex.new()
+	ans.uuid = uuid
+	ans.logical_location = Vector2i(logical_location)
+	ans.left_vertex = left_vertex
+	ans.right_vertex = right_vertex
+	ans.up_vertex = up_vertex
+	ans.down_vertex = down_vertex
+	ans.has_item = has_item
+	ans.item = item
+	ans.enemies = enemies.duplicate(true)
+	ans.has_scientist = has_scientist
+	ans.is_exit = is_exit
+	return ans
+	
